@@ -1,0 +1,33 @@
+<?php
+// 1. SETTING API VIDIO ANDA
+// Ganti tulisan ini dengan URL API yang Anda gunakan untuk mendapatkan JSON di pesan pertama
+ $api_url = "MASUKKAN_URL_API_ANDA_DISINI"; 
+
+// 2. AMBIL DATA DARI API VIDIO
+ $json_data = @file_get_contents($api_url);
+if (!$json_data) {
+    die("# Gagal mengambil data dari API Vidio. Cek URL API atau blokir dari hosting.");
+}
+
+ $data = json_decode($json_data, true);
+
+// 3. AMBIL LINK HLS YANG MASIH SEGAR
+if (isset($data['data']['attributes']['hls'])) {
+    $fresh_hls_url = $data['data']['attributes']['hls'];
+    
+    // 4. AMBIL ISI FILE M3U8 DARI LINK TERSEBUT
+    $m3u8_content = @file_get_contents($fresh_hls_url);
+    
+    if (!$m3u8_content) {
+        die("# Gagal mengambil video dari server Akamai. Kemungkinan IP Hosting diblokir.");
+    }
+    
+    // 5. KIRIM KE OTT PLAYER SEBAGAI M3U8
+    header('Content-Type: application/vnd.apple.mpegurl');
+    header('Cache-Control: no-cache');
+    echo $m3u8_content;
+
+} else {
+    echo "# Format JSON tidak sesuai atau token gagal didapat.";
+}
+?>
